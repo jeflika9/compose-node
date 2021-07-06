@@ -3655,6 +3655,76 @@
             }
           ],
           "index": 8
+        },
+        {
+          "name": "ComposeRegister2",
+          "storage": {
+            "prefix": "TemplateModule",
+            "entries": [
+              {
+                "name": "Something",
+                "modifier": "Optional",
+                "ty": {
+                  "Plain": "u32"
+                },
+                "default": [
+                  0
+                ],
+                "documentation": []
+              }
+            ]
+          },
+          "calls": [
+            {
+              "name": "do_something",
+              "arguments": [
+                {
+                  "name": "something",
+                  "ty": "u32"
+                }
+              ],
+              "documentation": [
+                " An example dispatchable that takes a singles value as a parameter, writes the value to",
+                " storage and emits an event. This function must be dispatched by a signed extrinsic."
+              ]
+            },
+            {
+              "name": "cause_error",
+              "arguments": [],
+              "documentation": [
+                " An example dispatchable that may throw a custom error."
+              ]
+            }
+          ],
+          "event": [
+            {
+              "name": "SomethingStored",
+              "arguments": [
+                "u32",
+                "AccountId"
+              ],
+              "documentation": [
+                " Event documentation should end with an array that provides descriptive names for event",
+                " parameters. [something, who]"
+              ]
+            }
+          ],
+          "constants": [],
+          "errors": [
+            {
+              "name": "NoneValue",
+              "documentation": [
+                " Error names should be descriptive."
+              ]
+            },
+            {
+              "name": "StorageOverflow",
+              "documentation": [
+                " Errors should have helpful documentation associated with them."
+              ]
+            }
+          ],
+          "index": 9
         }
       ],
       "extrinsic": {

@@ -157,6 +157,8 @@ impl<T: frame_system::Config> RegisteredPath<T> {
 
 pub use pallet::*;
 
+pub use crate as see_all;
+
 #[frame_support::pallet]
 pub mod pallet {
 	use frame_support::pallet_prelude::*;

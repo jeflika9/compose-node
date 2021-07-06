@@ -1,5 +1,5 @@
 use super::*;
-use crate as pallet_compose_register;
+use crate as compose_register;
 
 use frame_support::{assert_ok, assert_noop, parameter_types};
 use sp_core::{H256, Hasher};
@@ -19,7 +19,7 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
 		Balances: pallet_balances::{Pallet, Call, Storage, Config<T>, Event<T>},
-		ComposeRegister: pallet_compose_register::{Pallet, Call, Event<T>},
+		ComposeRegister: compose_register::{Pallet, Call, Event<T>},
 	}
 );
 
