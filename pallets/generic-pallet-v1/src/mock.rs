@@ -1,6 +1,7 @@
 use crate as pallet_template;
 use sp_core::H256;
-use frame_support::parameter_types;
+use frame_support::{parameter_types, traits::{AllowAll}};
+
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup}, testing::Header,
 };
@@ -27,7 +28,7 @@ parameter_types! {
 }
 
 impl system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = AllowAll;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();

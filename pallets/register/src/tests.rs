@@ -1,7 +1,7 @@
 use super::*;
 use crate as pallet_compose_register;
 
-use frame_support::{assert_ok, assert_noop, parameter_types};
+use frame_support::{assert_ok, assert_noop, parameter_types, traits::{AllowAll}};
 use sp_core::{H256, Hasher};
 use sp_runtime::{
 	testing::Header,
@@ -29,7 +29,7 @@ parameter_types! {
 		frame_system::limits::BlockWeights::simple_max(1024);
 }
 impl frame_system::Config for Test {
-	type BaseCallFilter = ();
+	type BaseCallFilter = AllowAll;
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
