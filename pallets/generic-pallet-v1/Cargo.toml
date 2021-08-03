@@ -24,10 +24,13 @@ frame-support = { version = "4.0.0-dev", git = "https://github.com/paritytech/su
 frame-system = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", package = "frame-system", default-features = false }
 
 [dev-dependencies]
-serde = { version = "1.0.119" }
-sp-core = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", package = "sp-core", default-features = false }
-sp-io = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", package = "sp-io", default-features = false }
-sp-runtime = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", package = "sp-runtime", default-features = false }
+serde = { version = "1.0.126" }
+# sp-core = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", package = "sp-core", default-features = false }
+# sp-io = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", package = "sp-io", default-features = false }
+# sp-runtime = { version = "4.0.0-dev", git = "https://github.com/paritytech/substrate", package = "sp-runtime", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", package = "sp-core", default-features = false }
+sp-io = { git = "https://github.com/paritytech/substrate", package = "sp-io", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", package = "sp-runtime", default-features = false }
 
 [features]
 default = ['std']

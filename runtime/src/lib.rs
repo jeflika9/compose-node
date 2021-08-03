@@ -43,6 +43,7 @@ pub use frame_support::{
 	},
 };
 use frame_system::limits::{BlockWeights, BlockLength};
+use compose_primitives::{NamedContract};
 
 /// An index to a block.
 pub type BlockNumber = u32;
@@ -351,16 +352,25 @@ impl pallet_sudo::Config for Runtime {
 
 impl pallet_randomness_collective_flip::Config for Runtime {}
 
-parameter_types! {
-	pub const MaxDomainByteSize: u32 = 32;
-	pub const MaxRouteByteSize: u32 = 512;
+impl pallet_mmr::Config for Runtime {
+	const INDEXING_PREFIX: &'static [u8] = b"mmr";
+	type Hashing = <Runtime as frame_system::Config>::Hashing;
+	type Hash = <Runtime as frame_system::Config>::Hash;
+	type LeafData = frame_system::Pallet<Self>;
+	type OnNewRoot = ();
+	type WeightInfo = ();
 }
 
 impl generic_pallet_v1::Config for Runtime {
 	type Event = Event;
 }
 
-impl compose_register::Config for Runtime {
+parameter_types! {
+	pub const MaxDomainByteSize: u32 = 32;
+	pub const MaxRouteByteSize: u32 = 512;
+}
+
+impl compose::Config for Runtime {
 	type Event = Event;
 	type MaxDomainByteSize = MaxDomainByteSize;
 	type MaxRouteByteSize = MaxRouteByteSize;
@@ -382,7 +392,9 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment::{Pallet, Storage},
 		Sudo: pallet_sudo::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Contracts: pallet_contracts::{Pallet, Call, Storage, Event<T>},
-		ComposeRegister: compose_register::{Pallet, Call, Storage, Event<T>},
+		// ### RPC REQUIRED ###
+		Compose: compose::{Pallet, Call, Storage, Event<T>},
+		Mmr: pallet_mmr::{Pallet, Storage},
 		GenericPalletV1: generic_pallet_v1::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -419,6 +431,21 @@ pub type Executive = frame_executive::Executive<
 	Runtime,
 	AllPallets,
 >;
+
+// ### RPC REQUIRED ###
+/// MMR helper types.
+mod mmr {
+	use super::Runtime;
+	pub use pallet_mmr::primitives::*;
+
+	pub type Leaf = <
+		<Runtime as pallet_mmr::Config>::LeafData
+		as
+		LeafDataProvider
+	>::LeafData;
+	pub type Hash = <Runtime as pallet_mmr::Config>::Hash;
+	pub type Hashing = <Runtime as pallet_mmr::Config>::Hashing;
+}
 
 impl_runtime_apis! {
 	impl sp_api::Core<Block> for Runtime {
@@ -580,6 +607,57 @@ impl_runtime_apis! {
 			address: AccountId,
 		) -> pallet_contracts_primitives::RentProjectionResult<BlockNumber> {
 			Contracts::rent_projection(address)
+		}
+	}
+
+	// ### RPC REQUIRED ###
+	impl pallet_mmr::primitives::MmrApi<
+		Block,
+		mmr::Hash,
+	> for Runtime {
+		fn generate_proof(leaf_index: u64)
+			-> Result<(mmr::EncodableOpaqueLeaf, mmr::Proof<mmr::Hash>), mmr::Error>
+		{
+			Mmr::generate_proof(leaf_index)
+				.map(|(leaf, proof)| (mmr::EncodableOpaqueLeaf::from_leaf(&leaf), proof))
+		}
+
+		fn verify_proof(leaf: mmr::EncodableOpaqueLeaf, proof: mmr::Proof<mmr::Hash>)
+			-> Result<(), mmr::Error>
+		{
+			let leaf: mmr::Leaf = leaf
+				.into_opaque_leaf()
+				.try_decode()
+				.ok_or(mmr::Error::Verify)?;
+			Mmr::verify_leaf(leaf, proof)
+		}
+
+		fn verify_proof_stateless(
+			root: mmr::Hash,
+			leaf: mmr::EncodableOpaqueLeaf,
+			proof: mmr::Proof<mmr::Hash>
+		) -> Result<(), mmr::Error> {
+			let node = mmr::DataOrHash::Data(leaf.into_opaque_leaf());
+			pallet_mmr::verify_leaf_proof::<mmr::Hashing, _>(root, node, proof)
+		}
+	}
+
+	impl compose_primitives::ComposeApi<Block, AccountId, Balance, BlockNumber, Hash>
+		for Runtime
+	{
+		fn get_named_contract(contract_path: Vec<u8>) -> Option<NamedContract<AccountId, Hash>> {
+			let registered_path = compose::Pallet::<Runtime>::get_registered_path_info_from_vec(contract_path.clone());
+			match registered_path {
+				Some(path_info) => Some(NamedContract {
+					path: contract_path.clone(),
+					owner: path_info.clone().owner,
+					code_hash: match path_info.contract {
+						Some(contract) => Some(contract.code_hash),
+						None => None
+					}
+				}),
+				None => None,
+			}
 		}
 	}
 }

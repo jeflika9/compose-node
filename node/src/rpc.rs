@@ -34,12 +34,19 @@ pub fn create_full<C, P>(
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: pallet_contracts_rpc::ContractsRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
+	// C::Api: compose_rpc::ComposeRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
+	// ### RPC REQUIRED ###
+	C::Api: compose_rpc::ComposeRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
+	C::Api: pallet_mmr_rpc::MmrRuntimeApi<Block, <Block as sp_runtime::traits::Block>::Hash>,
 	C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
 	C::Api: BlockBuilder<Block>,
 	P: TransactionPool + 'static,
 {
 	use substrate_frame_rpc_system::{FullSystem, SystemApi};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApi};
+	// ### RPC REQUIRED ###
+	use compose_rpc::{ComposeApi, Compose};
+	use pallet_mmr_rpc::{MmrApi, Mmr};
 
 	let mut io = jsonrpc_core::IoHandler::default();
 	let FullDeps {
@@ -54,6 +61,17 @@ pub fn create_full<C, P>(
 
 	io.extend_with(
 		TransactionPaymentApi::to_delegate(TransactionPayment::new(client.clone()))
+	);
+
+	// ### RPC REQUIRED ###
+	// Compose RPC API extension
+	io.extend_with(
+		ComposeApi::to_delegate(Compose::new(client.clone()))
+	);
+
+	// Merkle Mountain Range RPC API extension
+	io.extend_with(
+		MmrApi::to_delegate(Mmr::new(client.clone()))
 	);
 
 	// Contracts RPC API extension

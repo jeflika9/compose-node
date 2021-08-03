@@ -1,0 +1,47 @@
+[package]
+name = "compose-primitives"
+version = "0.1.0"
+authors = ["Parity Technologies <admin@parity.io>"]
+edition = "2018"
+license = "Apache-2.0"
+homepage = "https://substrate.dev"
+repository = "https://github.com/paritytech/substrate/"
+description = "Compose	 primitives."
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+# jsonrpc-core = "15.1.0"
+serde = { version = "1.0.126", optional = true, features = ["derive"] }
+codec = { package = "parity-scale-codec", version = "2.0.0", default-features = false }
+
+frame-support = { git = "https://github.com/paritytech/substrate", package = "frame-support", default-features = false }
+frame-system = { git = "https://github.com/paritytech/substrate", package = "frame-system", default-features = false }
+
+sp-api = { git = "https://github.com/paritytech/substrate", package = "sp-api", default-features = false }
+sp-core = { git = "https://github.com/paritytech/substrate", package = "sp-core", default-features = false }
+sp-runtime = { git = "https://github.com/paritytech/substrate", package = "sp-runtime", default-features = false }
+sp-std = { git = "https://github.com/paritytech/substrate", package = "sp-std", default-features = false }
+
+log = { version = "0.4.14", default-features = false }
+
+[dev-dependencies]
+hex-literal = "0.3"
+
+[features]
+default = ["std"]
+std = [
+	"serde",
+	"codec/std",
+
+	"frame-support/std",
+	"frame-system/std",
+
+	"sp-api/std",
+	"sp-core/std",
+	"sp-runtime/std",
+	"sp-std/std",
+
+	"log/std",
+]

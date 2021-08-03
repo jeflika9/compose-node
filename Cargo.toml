@@ -2,9 +2,18 @@
 members = [
     'node',
     'runtime',
-    'pallets/register',
+    # 'pallets/compose/common',
+    # 'pallets/compose/register',
+    # 'pallets/compose/rpc',
+    # 'pallets/compose/rpc/runtime-api',
+    ### RPC REQUIRED ###
+    'pallets/compose',
+    'pallets/compose/primitives',
+    'pallets/compose/rpc',
+    'pallets/merkle-mountain-range',
+    'pallets/merkle-mountain-range/primitives',
+    'pallets/merkle-mountain-range/rpc',
     'pallets/generic-pallet-v1',
-    # 'pallets/register3',
 ]
 [profile.release]
 panic = 'unwind'

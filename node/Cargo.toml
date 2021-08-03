@@ -48,6 +48,10 @@ frame-benchmarking = { git = "https://github.com/paritytech/substrate", package 
 frame-benchmarking-cli = { git = "https://github.com/paritytech/substrate", package = "frame-benchmarking-cli" }
 
 compose-runtime = { version = "0.1.0", path = "../runtime" }
+# compose-rpc = { version = "0.1.0", path = "../pallets/rpc" }
+### RPC REQUIRED ###
+compose-rpc = { version = "0.1.0", path = "../pallets/compose/rpc" }
+pallet-mmr-rpc = { version = "3.0.0", path = "../pallets/merkle-mountain-range/rpc" }
 
 [build-dependencies]
 substrate-build-script-utils = { git = "https://github.com/paritytech/substrate", package = "substrate-build-script-utils" }
