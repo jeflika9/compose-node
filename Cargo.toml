@@ -2,10 +2,6 @@
 members = [
     'node',
     'runtime',
-    # 'pallets/compose/common',
-    # 'pallets/compose/register',
-    # 'pallets/compose/rpc',
-    # 'pallets/compose/rpc/runtime-api',
     ### RPC REQUIRED ###
     'pallets/compose',
     'pallets/compose/primitives',

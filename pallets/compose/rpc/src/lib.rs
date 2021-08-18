@@ -40,6 +40,8 @@ use sp_runtime::{
 
 // ### RPC REQUIRED ###
 use compose_primitives::{
+	NamedCallRequest,
+	NamedInstantiateRequest,
 	NamedContract,
 	Error as ComposeError,
 };
@@ -50,31 +52,32 @@ pub use compose_primitives::ComposeApi as ComposeRuntimeApi;
 /// Compose RPC methods.
 #[rpc]
 pub trait ComposeApi<BlockHash, BlockNumber, AccountId, Balance, Hash> {
-	// /// Executes a call to a contract.
-	// ///
-	// /// This call is performed locally without submitting any transactions. Thus executing this
-	// /// won't change any state. Nonetheless, the calling state-changing contracts is still possible.
-	// ///
-	// /// This method is useful for calling getter-like methods on contracts.
-	// #[rpc(name = "compose_namedCall")]
-	// fn named_call(
-	// 	&self,
-	// 	call_request: CallRequest<AccountId>,
-	// 	at: Option<BlockHash>,
-	// ) -> Result<ContractExecResult>;
+	// ### RPC REQUIRED ###
+	/// Executes a call to a contract.
+	///
+	/// This call is performed locally without submitting any transactions. Thus executing this
+	/// won't change any state. Nonetheless, the calling state-changing contracts is still possible.
+	///
+	/// This method is useful for calling getter-like methods on contracts.
+	#[rpc(name = "compose_namedCall")]
+	fn named_call(
+		&self,
+		call_request: NamedCallRequest<AccountId>,
+		at: Option<BlockHash>,
+	) -> Result<ContractExecResult>;
 
-	// /// Instantiate a new contract.
-	// ///
-	// /// This call is performed locally without submitting any transactions. Thus the contract
-	// /// is not actually created.
-	// ///
-	// /// This method is useful for UIs to dry-run contract instantiations.
-	// #[rpc(name = "compose_instantiate")]
-	// fn named_instantiate(
-	// 	&self,
-	// 	instantiate_request: InstantiateRequest<AccountId, Hash>,
-	// 	at: Option<BlockHash>,
-	// ) -> Result<ContractInstantiateResult<AccountId, BlockNumber>>;
+	/// Instantiate a new contract.
+	///
+	/// This call is performed locally without submitting any transactions. Thus the contract
+	/// is not actually created.
+	///
+	/// This method is useful for UIs to dry-run contract instantiations.
+	#[rpc(name = "compose_instantiate")]
+	fn named_instantiate(
+		&self,
+		instantiate_request: InstantiateRequest<AccountId, Hash>,
+		at: Option<BlockHash>,
+	) -> Result<ContractInstantiateResult<AccountId, BlockNumber>>;
 
 	/// Returns the value under a specified storage `key` in a contract given by `address` param,
 	/// or `None` if it is not set.
@@ -150,13 +153,31 @@ where
 	// 	Ok(LeafProof::new(block_hash, leaf, proof))
 	// }
 
+	fn named_call(
+		&self,
+		call_request: NamedCallRequest<AccountId>,
+		at: Option<BlockHash>,
+	) -> Result<ContractExecResult> {
+
+	}
+
+	fn named_instantiate(
+		&self,
+		instantiate_request: NamedInstantiateRequest<AccountId, Hash>,
+		at: Option<BlockHash>,
+	) -> Result<ContractInstantiateResult<AccountId, BlockNumber>> {
+
+	}
+
 	fn get_named_contract(&self, contract_path: Vec<u8>) -> Result<NamedContract<AccountId, Hash>> {
-		Err(compose_error_into_rpc_error(ComposeError::NotFound(contract_path)))
-		// Ok(NamedContract::<AccountId, Hash> {
-		// 	path: contract_path,
-		// 	id: AccountId::new(0u32),
-		// 	code: Hash::new(0u32),
-		// })
+		match compose::get_registered_path_info_from_vec(contract_path.clone()) {
+			Some(contract) => Ok(NamedContract::<AccountId, Hash> {
+				path: contract_path.clone(),
+				owner: contract.clone().owner,
+				code_hash: contract.clone().code_hash,
+			}),
+			None => Err(compose_error_into_rpc_error(ComposeError::NotFound(contract_path))),
+		}
 	}
 }
 
@@ -179,65 +200,3 @@ fn compose_error_into_rpc_error(err: ComposeError) -> Error {
 		// },
 	}
 }
-
-// /// Converts a runtime trap into an RPC error.
-// fn runtime_error_into_rpc_error(err: impl std::fmt::Debug) -> Error {
-// 	Error {
-// 		code: ErrorCode::ServerError(RUNTIME_ERROR),
-// 		message: "Runtime trapped".into(),
-// 		data: Some(format!("{:?}", err).into()),
-// 	}
-// }
-
-// #[cfg(test)]
-// mod tests {
-// 	use super::*;
-// 	use sp_core::H256;
-
-// 	#[test]
-// 	fn should_serialize_leaf_proof() {
-// 		// given
-// 		let leaf = vec![1_u8, 2, 3, 4];
-// 		let proof = Proof {
-// 			leaf_index: 1,
-// 			leaf_count: 9,
-// 			items: vec![H256::repeat_byte(1), H256::repeat_byte(2)],
-// 		};
-
-// 		let leaf_proof = LeafProof::new(H256::repeat_byte(0), leaf, proof);
-
-// 		// when
-// 		let actual = serde_json::to_string(&leaf_proof).unwrap();
-
-// 		// then
-// 		assert_eq!(
-// 			actual,
-// 			r#"{"blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000","leaf":"0x1001020304","proof":"0x010000000000000009000000000000000801010101010101010101010101010101010101010101010101010101010101010202020202020202020202020202020202020202020202020202020202020202"}"#
-// 		);
-// 	}
-
-// 	#[test]
-// 	fn should_deserialize_leaf_proof() {
-// 		// given
-// 		let expected = LeafProof {
-// 			block_hash: H256::repeat_byte(0),
-// 			leaf: Bytes(vec![1_u8, 2, 3, 4].encode()),
-// 			proof: Bytes(Proof {
-// 				leaf_index: 1,
-// 				leaf_count: 9,
-// 				items: vec![H256::repeat_byte(1), H256::repeat_byte(2)],
-// 			}.encode()),
-// 		};
-
-// 		// when
-// 		let actual: LeafProof<H256> = serde_json::from_str(r#"{
-// 			"blockHash":"0x0000000000000000000000000000000000000000000000000000000000000000",
-// 			"leaf":"0x1001020304",
-// 			"proof":"0x010000000000000009000000000000000801010101010101010101010101010101010101010101010101010101010101010202020202020202020202020202020202020202020202020202020202020202"
-// 		}"#).unwrap();
-
-// 		// then
-// 		assert_eq!(actual, expected);
-
-// 	}
-// }

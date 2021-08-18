@@ -86,7 +86,7 @@ impl Error {
 pub struct NamedContract<AccountId, Hash> {
 	#[cfg_attr(feature = "std", serde(with = "as_string"))]
 	/// The string representation of the path
-    pub path: Vec<u8>,
+    pub contract_path: Vec<u8>,
 	/// The owner of the contract
 	pub owner:  AccountId,
 	/// The hash of the contract code (if the path does not point to a contract
@@ -94,7 +94,43 @@ pub struct NamedContract<AccountId, Hash> {
     pub code_hash: Option<Hash>,
 }
 
-// pub type NamedContractResult<AccountId, Hash> = Result<NamedContract<AccountId, Hash>>;
+/// A struct that encodes RPC parameters required for a call to a named smart contract.
+#[derive(Eq, PartialEq, Encode, Decode, RuntimeDebug)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
+#[cfg_attr(feature = "std", serde(rename_all = "camelCase"))]
+pub struct NamedCallRequest<AccountId> {
+	/// The account that is calling the contract
+	origin: AccountId,
+	/// The string representation of the contract's path
+	contract_path: Vec<u8>,
+	/// The amount of balance transferred by the caller as part of the call
+	value: number::NumberOrHex,
+	/// The maximum amount of gas to spend during contract execution 
+	gas_limit: number::NumberOrHex,
+	/// The contract's input parameters
+	input_data: Bytes,
+}
+
+/// A struct that encodes RPC parameters required to instantiate a new named smart-contract.
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[serde(deny_unknown_fields)]
+pub struct NamedInstantiateRequest<AccountId, Hash> {
+	/// The account that is instantiating the contract
+	origin: AccountId,
+	/// The string representation of the contract's path
+	contract_path: Vec<u8>,
+	/// The initial funds transferred to the contract (so that it does not get tombstoned or deleted from the blockchain)
+	endowment: NumberOrHex,
+	/// The maximum amount of gas to spend during contract execution 
+	gas_limit: NumberOrHex,
+	/// The code of the contract
+	code: Code<Hash>,
+	/// The input data given to the contract
+	data: Bytes,
+	/// A salt used in the contract address deriviation of the new contract.
+	salt: Bytes,
+}
 
 // ### RPC REQUIRED ###
 sp_api::decl_runtime_apis! {
@@ -106,29 +142,29 @@ sp_api::decl_runtime_apis! {
 		BlockNumber: Codec,
 		Hash: Codec,
 	{
-		// /// Perform a call from a specified account to a given contract.
-		// ///
-		// /// See [`compose::named_call`].
-		// fn named_call(
-		// 	origin: AccountId,
-		// 	contract_path: &str,
-		// 	value: Balance,
-		// 	gas_limit: u64,
-		// 	input_data: Vec<u8>,
-		// ) -> ContractExecResult;
+		/// Perform a call from a specified account to a given contract.
+		///
+		/// See [`compose::named_call`].
+		fn named_call(
+			origin: AccountId,
+			contract_path: Vec<u8>,
+			value: Balance,
+			gas_limit: u64,
+			input_data: Vec<u8>,
+		) -> ContractExecResult;
 
-		// /// Instantiate a new contract.
-		// ///
-		// /// See [`compose::named_instantiate`].
-		// fn named_instantiate(
-		// 	origin: AccountId,
-		// 	endowment: Balance,
-		// 	gas_limit: u64,
-        //     contract_path: &str,
-		// 	code: Code<Hash>,
-		// 	data: Vec<u8>,
-		// 	salt: Vec<u8>,
-		// ) -> ContractInstantiateResult<AccountId, BlockNumber>;
+		/// Instantiate a new contract.
+		///
+		/// See [`compose::named_instantiate`].
+		fn named_instantiate(
+			origin: AccountId,
+			endowment: Balance,
+			gas_limit: u64,
+            contract_path: Vec<u8>,
+			code: Code<Hash>,
+			data: Vec<u8>,
+			salt: Vec<u8>,
+		) -> ContractInstantiateResult<AccountId, BlockNumber>;
 
 		/// Query the key details on a given contract, so that it may be called.
 		///

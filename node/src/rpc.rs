@@ -34,7 +34,6 @@ pub fn create_full<C, P>(
 	C: Send + Sync + 'static,
 	C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Index>,
 	C::Api: pallet_contracts_rpc::ContractsRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
-	// C::Api: compose_rpc::ComposeRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
 	// ### RPC REQUIRED ###
 	C::Api: compose_rpc::ComposeRuntimeApi<Block, AccountId, Balance, BlockNumber, Hash>,
 	C::Api: pallet_mmr_rpc::MmrRuntimeApi<Block, <Block as sp_runtime::traits::Block>::Hash>,
